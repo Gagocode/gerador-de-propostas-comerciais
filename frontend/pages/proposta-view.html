@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizar Proposta · PropostaPRO</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Reset e Variáveis locais para o documento */
+    :root {
+      --document-bg: #f5f5f7;
+      --paper-white: #ffffff;
+      --text-main: #1a1a1a;
+      --text-secondary: #4b5563;
+      --text-muted: #9ca3af;
+      --accent-doc: #2563eb;
+      --border-light: #e5e7eb;
+      --border-dark: #374151;
+    }
+
+    body {
+      background-color: var(--document-bg);
+      color: var(--text-main);
+      font-family: 'DM Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Barra de ferramentas (no-print) */
+    .toolbar {
+      background: #111;
+      padding: 12px 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .toolbar-content {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+    }
+
+    /* Documento A4 */
+    .document-container {
+      max-width: 210mm;
+      margin: 40px auto;
+      background: var(--paper-white);
+      box-shadow: 0 0 30px rgba(0,0,0,0.1);
+      padding: 25mm 20mm;
+      min-height: 297mm;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    /* Header do Documento */
+    .doc-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--text-main);
+      padding-bottom: 24px;
+      margin-bottom: 40px;
+    }
+    .company-info {
+      flex: 1;
+    }
+    .company-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .company-details {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .proposal-meta {
+      text-align: right;
+    }
+    .proposal-type {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .proposal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .status-badge-doc {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Seções do Documento */
+    .doc-section {
+      margin-bottom: 32px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* Dados do Cliente */
+    .client-data {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .data-item .label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .data-item .value {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Descrição */
+    .doc-description {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      white-space: pre-line;
+    }
+
+    /* Tabela de Serviços */
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .doc-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-main);
+      border-bottom: 2px solid var(--text-main);
+      padding: 12px 8px;
+    }
+    .doc-table td {
+      padding: 14px 8px;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 14px;
+      vertical-align: top;
+    }
+    .doc-table .col-valor {
+      text-align: right;
+      width: 120px;
+    }
+    .doc-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Total */
+    .doc-total-container {
+      margin-top: 16px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .doc-total-box {
+      background: #f9fafb;
+      padding: 16px 24px;
+      border-radius: 4px;
+      text-align: right;
+      min-width: 200px;
+    }
+    .total-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .total-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent-doc);
+    }
+
+    /* Observações */
+    .doc-notes {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: #fdfdfd;
+      border: 1px dashed var(--border-light);
+      padding: 16px;
+      border-radius: 4px;
+      white-space: pre-line;
+    }
+
+    /* Assinaturas */
+    .signature-grid {
+      margin-top: 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+    }
+    .signature-box {
+      text-align: center;
+    }
+    .signature-line {
+      border-top: 1px solid var(--text-main);
+      margin-bottom: 8px;
+    }
+    .signature-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .signature-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Footer do documento */
+    .doc-footer {
+      position: absolute;
+      bottom: 20mm;
+      left: 20mm;
+      right: 20mm;
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-light);
+      padding-top: 12px;
+    }
+
+    /* ===== PRINT STYLES ===== */
+    @media print {
+      body {
+        background: #fff !important;
+      }
+      .toolbar, .nav, .no-print {
+        display: none !important;
+      }
+      .document-container {
+        margin: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+      }
+      @page {
+        size: A4;
+        margin: 20mm;
+      }
+      .status-badge-doc {
+        border: 1px solid #ccc;
+      }
+    }
+
+    /* Cores das Badges no Doc */
+    .badge-rascunho { color: #6b7280; background: #f3f4f6; }
+    .badge-enviada  { color: #2563eb; background: #eff6ff; }
+    .badge-aprovada { color: #059669; background: #ecfdf5; }
+    .badge-recusada { color: #dc2626; background: #fef2f2; }
+  </style>
+</head>
+<body>
+
+<div class="toolbar no-print">
+  <div class="toolbar-content">
+    <div class="d-flex align-center gap-8">
+      <a href="/pages/propostas.html" class="btn btn-secondary btn-sm">← Voltar</a>
+      <span style="color:#fff; font-size:14px; font-weight:500;" id="toolbar-title">Proposta</span>
+    </div>
+    <div class="d-flex gap-8">
+      <button id="btn-editar" class="btn btn-secondary btn-sm" style="display:none">✏️ Editar</button>
+      <button onclick="duplicar()" class="btn btn-secondary btn-sm">⧉ Duplicar</button>
+      <button onclick="window.print()" class="btn btn-primary btn-sm">🖨️ Imprimir PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="document-container" id="documento">
+  <!-- Header -->
+  <header class="doc-header">
+    <div class="company-info">
+      <div class="company-name" id="empresa-nome">—</div>
+      <div class="company-details" id="empresa-info"></div>
+    </div>
+    <div class="proposal-meta">
+      <div class="proposal-type">Proposta Comercial</div>
+      <div class="proposal-title" id="prop-titulo">—</div>
+      <div id="prop-status-badge"></div>
+    </div>
+  </header>
+
+  <!-- Dados do Cliente -->
+  <section class="doc-section">
+    <div class="section-label">Informações do Cliente</div>
+    <div class="client-data" id="cliente-info">
+      <div class="data-item">
+        <div class="label">Cliente</div>
+        <div class="value">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Descrição -->
+  <section class="doc-section" id="desc-section" style="display:none">
+    <div class="section-label">Objetivo da Proposta</div>
+    <div class="doc-description" id="prop-descricao"></div>
+  </section>
+
+  <!-- Serviços -->
+  <section class="doc-section">
+    <div class="section-label">Serviços e Investimento</div>
+    <table class="doc-table">
+      <thead>
+        <tr>
+          <th>Serviço</th>
+          <th>Descrição</th>
+          <th class="col-valor">Valor</th>
+        </tr>
+      </thead>
+      <tbody id="servicos-tbody"></tbody>
+    </table>
+
+    <div class="doc-total-container">
+      <div class="doc-total-box">
+        <div class="total-label">Total do Investimento</div>
+        <div class="total-value" id="prop-total">R$ 0,00</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Observações -->
+  <section class="doc-section" id="obs-section" style="display:none">
+    <div class="section-label">Condições e Observações</div>
+    <div class="doc-notes" id="prop-observacoes"></div>
+  </section>
+
+  <!-- Assinaturas -->
+  <section class="doc-section signature-grid">
+    <div class="signature-box">
+      <div class="signature-line"></div>
+      <div class="signature-label" id="sign-empresa-rep">—</div>
+      <div class="signature-sub" id="sign-empresa-cargo">—</div>
+    </div>
+    <div class="signature-box">
+      <div class="signature-line"></div>
+      <div class="signature-label" id="sign-cliente-rep">—</div>
+      <div class="signature-sub" id="sign-cliente-cargo">—</div>
+    </div>
+  </section>
+
+  <!-- Datas -->
+  <div style="margin-top:40px; font-size:10px; color:var(--text-muted); text-align: right;">
+    Emitido em: <span id="created-at">—</span> | Atualizado em: <span id="updated-at">—</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="doc-footer" id="prop-footer"></footer>
+</div>
+
+<div id="toast"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+let propostaId = null;
+
+(async () => {
+  const params = getParams();
+  propostaId = params.id ? parseInt(params.id) : null;
+  if (!propostaId) { window.location.href = '/pages/propostas.html'; return; }
+
+  try {
+    const [p, config] = await Promise.all([
+      API.buscarProposta(propostaId),
+      API.buscarConfig(),
+    ]);
+
+    // Dados da Empresa (Config Geral)
+    document.getElementById('empresa-nome').textContent = config.nome_empresa || 'Sua Empresa';
+    document.getElementById('empresa-info').innerHTML = [
+      config.endereco,
+      config.telefone ? `Telefone: ${config.telefone}` : null,
+      config.email ? `Email: ${config.email}` : null
+    ].filter(Boolean).join('<br>');
+    document.getElementById('prop-footer').textContent = config.rodape || '';
+
+    // Assinaturas Dinâmicas
+    document.getElementById('sign-empresa-rep').textContent = p.empresa_representante || config.nome_empresa || '—';
+    document.getElementById('sign-empresa-cargo').textContent = p.empresa_cargo || 'Representante Legal';
+    document.getElementById('sign-cliente-rep').textContent = p.cliente_representante || (p.cliente ? p.cliente.nome : '—');
+    document.getElementById('sign-cliente-cargo').textContent = p.cliente_cargo || 'Aceite do Cliente';
+
+    // Dados da Proposta
+    document.getElementById('toolbar-title').textContent = `Proposta #${p.id} - ${p.titulo}`;
+    document.getElementById('prop-titulo').textContent = p.titulo;
+    document.getElementById('prop-status-badge').innerHTML = badgeHtmlDoc(p.status);
+    document.getElementById('created-at').textContent = formatDate(p.created_at);
+    document.getElementById('updated-at').textContent = formatDate(p.updated_at);
+
+    // Cliente
+    if (p.cliente) {
+      document.getElementById('cliente-info').innerHTML = `
+        <div class="data-item">
+          <div class="label">Cliente</div>
+          <div class="value">${p.cliente.nome}</div>
+        </div>
+        <div class="data-item">
+          <div class="label">E-mail</div>
+          <div class="value">${p.cliente.email || '—'}</div>
+        </div>
+        <div class="data-item">
+          <div class="label">Telefone</div>
+          <div class="value">${p.cliente.telefone || '—'}</div>
+        </div>
+      `;
+    }
+
+    // Descrição
+    if (p.descricao) {
+      document.getElementById('desc-section').style.display = 'block';
+      document.getElementById('prop-descricao').textContent = p.descricao;
+    }
+
+    // Observações
+    if (p.observacoes) {
+      document.getElementById('obs-section').style.display = 'block';
+      document.getElementById('prop-observacoes').textContent = p.observacoes;
+    }
+
+    // Serviços
+    const tbody = document.getElementById('servicos-tbody');
+    if (p.servicos.length) {
+      tbody.innerHTML = p.servicos.map(s => `
+        <tr>
+          <td style="font-weight:600">${s.nome}</td>
+          <td style="color:var(--text-secondary); font-size:13px">${s.descricao || '—'}</td>
+          <td class="col-valor" style="font-weight:500">${formatBRL(s.valor)}</td>
+        </tr>
+      `).join('');
+    }
+    document.getElementById('prop-total').textContent = formatBRL(p.valor_total);
+
+    // Botão Editar
+    if (p.status === 'rascunho') {
+      const btn = document.getElementById('btn-editar');
+      btn.style.display = 'inline-flex';
+      btn.onclick = () => window.location.href = `/pages/proposta-form.html?id=${p.id}`;
+    }
+
+  } catch (err) {
+    console.error(err);
+    toast('Erro ao carregar proposta', 'error');
+  }
+})();
+
+function badgeHtmlDoc(status) {
+  const map = { rascunho: 'badge-rascunho', enviada: 'badge-enviada', aprovada: 'badge-aprovada', recusada: 'badge-recusada' };
+  const labels = { rascunho: 'Rascunho', enviada: 'Enviada', aprovada: 'Aprovada', recusada: 'Recusada' };
+  return `<span class="status-badge-doc ${map[status] || ''}">${labels[status] || status}</span>`;
+}
+
+async function duplicar() {
+  if (!confirm('Deseja duplicar esta proposta?')) return;
+  try {
+    const nova = await API.duplicarProposta(propostaId);
+    toast('Proposta duplicada!', 'success');
+    setTimeout(() => window.location.href = `/pages/proposta-view.html?id=${nova.id}`, 700);
+  } catch(e) {
+    toast(e.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

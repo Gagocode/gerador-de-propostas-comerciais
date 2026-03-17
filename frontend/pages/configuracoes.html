@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações · PropostaPRO</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div id="nav-container"></div>
+
+<div class="page" style="max-width:640px">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Configurações</h1>
+      <p class="page-subtitle">Dados da sua empresa que aparecem nas propostas</p>
+    </div>
+  </div>
+
+  <div id="success-msg" class="alert alert-success" style="display:none">Configurações salvas com sucesso!</div>
+  <div id="error-msg" class="alert alert-danger" style="display:none"></div>
+
+  <form id="form-config">
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Nome da Empresa *</label>
+        <input type="text" id="nome_empresa" class="form-control" placeholder="Minha Empresa LTDA">
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label class="form-label">Telefone</label>
+          <input type="text" id="telefone" class="form-control" placeholder="(00) 00000-0000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input type="email" id="email" class="form-control" placeholder="contato@empresa.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Endereço</label>
+        <input type="text" id="endereco" class="form-control" placeholder="Rua Exemplo, 123 - Cidade, UF">
+      </div>
+      <div class="form-group mb-0">
+        <label class="form-label">Rodapé das propostas</label>
+        <textarea id="rodape" class="form-control" rows="2" placeholder="Ex: Proposta válida por 15 dias. Obrigado pela preferência!"></textarea>
+      </div>
+    </div>
+
+    <div class="d-flex gap-8 mt-24" style="justify-content:flex-end">
+      <button type="submit" class="btn btn-primary" id="btn-salvar">Salvar Configurações</button>
+    </div>
+  </form>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+(async () => {
+  const res = await fetch('/components/nav.html');
+  document.getElementById('nav-container').innerHTML = await res.text();
+  setActiveNav('configuracoes');
+
+  try {
+    const c = await API.buscarConfig();
+    document.getElementById('nome_empresa').value = c.nome_empresa || '';
+    document.getElementById('telefone').value = c.telefone || '';
+    document.getElementById('email').value = c.email || '';
+    document.getElementById('endereco').value = c.endereco || '';
+    document.getElementById('rodape').value = c.rodape || '';
+  } catch(e) { toast(e.message, 'error'); }
+})();
+
+document.getElementById('form-config').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+  document.getElementById('success-msg').style.display = 'none';
+  document.getElementById('error-msg').style.display = 'none';
+  try {
+    await API.salvarConfig({
+      nome_empresa: document.getElementById('nome_empresa').value.trim(),
+      telefone: document.getElementById('telefone').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      endereco: document.getElementById('endereco').value.trim(),
+      rodape: document.getElementById('rodape').value.trim(),
+    });
+    document.getElementById('success-msg').style.display = '';
+    toast('Configurações salvas!', 'success');
+  } catch(e) {
+    document.getElementById('error-msg').textContent = e.message;
+    document.getElementById('error-msg').style.display = '';
+    toast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar Configurações';
+  }
+});
+</script>
+</body>
+</html>

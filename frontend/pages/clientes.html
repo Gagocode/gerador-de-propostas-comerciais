@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clientes · PropostaPRO</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div id="nav-container"></div>
+
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Clientes</h1>
+      <p class="page-subtitle">Cadastro de clientes para uso nas propostas</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">＋ Novo Cliente</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th>Telefone</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">Carregando...</div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Novo Cliente</h3>
+      <button class="btn-icon" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nome *</label>
+      <input type="text" id="c-nome" class="form-control" placeholder="Nome completo ou razão social">
+    </div>
+    <div class="form-group">
+      <label class="form-label">E-mail</label>
+      <input type="email" id="c-email" class="form-control" placeholder="email@exemplo.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Telefone</label>
+      <input type="text" id="c-telefone" class="form-control" placeholder="(00) 00000-0000">
+    </div>
+    <div id="modal-error" class="alert alert-danger" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+let editId = null;
+
+(async () => {
+  const res = await fetch('/components/nav.html');
+  document.getElementById('nav-container').innerHTML = await res.text();
+  setActiveNav('clientes');
+  await carregar();
+})();
+
+async function carregar() {
+  const tbody = document.getElementById('tbody');
+  try {
+    const clientes = await API.listarClientes();
+    if (!clientes.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">Nenhum cliente cadastrado</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = clientes.map(c => `
+      <tr>
+        <td class="text-muted">#${c.id}</td>
+        <td><strong>${c.nome}</strong></td>
+        <td class="text-muted">${c.email || '—'}</td>
+        <td class="text-muted">${c.telefone || '—'}</td>
+        <td>
+          <div class="td-actions">
+            <button onclick='openModal(${JSON.stringify(c)})' class="btn btn-sm btn-secondary">✏️ Editar</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function openModal(c = null) {
+  editId = c ? c.id : null;
+  document.getElementById('modal-title').textContent = c ? 'Editar Cliente' : 'Novo Cliente';
+  document.getElementById('c-nome').value = c ? c.nome : '';
+  document.getElementById('c-email').value = c ? (c.email || '') : '';
+  document.getElementById('c-telefone').value = c ? (c.telefone || '') : '';
+  document.getElementById('modal-error').style.display = 'none';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+async function salvar() {
+  const nome = document.getElementById('c-nome').value.trim();
+  const email = document.getElementById('c-email').value.trim();
+  const telefone = document.getElementById('c-telefone').value.trim();
+  const errEl = document.getElementById('modal-error');
+  if (!nome) { errEl.textContent = 'Nome é obrigatório'; errEl.style.display = ''; return; }
+  errEl.style.display = 'none';
+  try {
+    if (editId) {
+      await API.editarCliente(editId, { nome, email, telefone });
+      toast('Cliente atualizado!');
+    } else {
+      await API.criarCliente({ nome, email, telefone });
+      toast('Cliente criado!');
+    }
+    closeModal();
+    await carregar();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = ''; }
+}
+</script>
+</body>
+</html>

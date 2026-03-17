@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proposta · PropostaPRO</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div id="nav-container"></div>
+
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title" id="page-title">Nova Proposta</h1>
+      <p class="page-subtitle" id="page-subtitle">Preencha os dados abaixo para criar sua proposta</p>
+    </div>
+    <div class="d-flex gap-8">
+      <a href="/pages/propostas.html" class="btn btn-secondary no-print">← Voltar</a>
+      <button type="submit" form="form-proposta" class="btn btn-primary" id="btn-salvar-topo">Salvar Proposta</button>
+    </div>
+  </div>
+
+  <div id="locked-banner" class="locked-banner" style="display:none">
+    ⚠️ Esta proposta não está em rascunho e <strong>&nbsp;não pode ser editada</strong>.
+  </div>
+
+  <form id="form-proposta">
+    <!-- Informações Gerais -->
+    <div class="card">
+      <h3 style="margin-bottom:18px;font-size:16px">Informações Gerais</h3>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label class="form-label">Título *</label>
+          <input type="text" id="titulo" class="form-control" placeholder="Ex: Proposta de Desenvolvimento Web" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select id="status" class="form-control">
+            <option value="rascunho">Rascunho</option>
+            <option value="enviada">Enviada</option>
+            <option value="aprovada">Aprovada</option>
+            <option value="recusada">Recusada</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label class="form-label">Cliente</label>
+          <select id="cliente_id" class="form-control">
+            <option value="">— Selecione um cliente —</option>
+          </select>
+        </div>
+        <div id="novo-cliente-section" class="form-group" style="display:none">
+          <label class="form-label">Nome do Novo Cliente *</label>
+          <input type="text" id="novo-cliente-nome" class="form-control" placeholder="Nome completo">
+        </div>
+      </div>
+      <div id="novo-cliente-toggle" style="margin-top:-10px;margin-bottom:16px">
+        <button type="button" class="btn btn-sm btn-secondary" onclick="toggleNovoCliente()">
+          <span id="toggle-label">＋ Cadastrar novo cliente</span>
+        </button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Objetivo da Proposta (Descrição Inicial)</label>
+        <textarea id="descricao" class="form-control" rows="3" placeholder="Descreva brevemente o objetivo da proposta"></textarea>
+      </div>
+    </div>
+
+    <!-- Serviços -->
+    <div class="card mt-24">
+      <div class="d-flex align-center justify-between" style="margin-bottom:16px">
+        <h3 style="font-size:16px">Serviços</h3>
+        <div class="d-flex gap-8">
+          <select id="servico-select" class="form-control" style="min-width:220px">
+            <option value="">Selecionar serviço da lista...</option>
+          </select>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="adicionarServicoLista()">Adicionar</button>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="adicionarServicoManual()">＋ Manual</button>
+        </div>
+      </div>
+
+      <div class="servicos-list" id="servicos-list">
+        <div class="empty-state" id="servicos-empty" style="padding:20px">
+          <div class="empty-state-icon">🔧</div>
+          <div class="empty-state-text">Nenhum serviço adicionado</div>
+        </div>
+      </div>
+
+      <div class="total-bar mt-16">
+        <span class="total-label">TOTAL DA PROPOSTA</span>
+        <span class="total-value" id="total-display">R$ 0,00</span>
+      </div>
+    </div>
+
+    <!-- Condições e Observações -->
+    <div class="card mt-24">
+      <h3 style="margin-bottom:18px;font-size:16px">Condições e Observações</h3>
+      <div class="form-group">
+        <label class="form-label">Observações e Termos</label>
+        <textarea id="observacoes" class="form-control" rows="5" placeholder="Validade da proposta, formas de pagamento, prazos, etc."></textarea>
+      </div>
+    </div>
+
+    <!-- Assinaturas -->
+    <div class="card mt-24">
+      <h3 style="margin-bottom:18px;font-size:16px">Dados para Assinatura</h3>
+      <div class="form-row cols-2">
+        <div style="border-right: 1px solid var(--border); padding-right: 16px;">
+          <p class="form-label" style="margin-bottom:12px; color: var(--accent);">Pela Empresa (Contratada)</p>
+          <div class="form-group">
+            <label class="form-label">Representante</label>
+            <input type="text" id="empresa_representante" class="form-control" placeholder="Nome do assinante">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cargo</label>
+            <input type="text" id="empresa_cargo" class="form-control" placeholder="Ex: Diretor Comercial">
+          </div>
+        </div>
+        <div style="padding-left: 16px;">
+          <p class="form-label" style="margin-bottom:12px; color: var(--accent);">Pelo Cliente (Contratante)</p>
+          <div class="form-group">
+            <label class="form-label">Representante</label>
+            <input type="text" id="cliente_representante" class="form-control" placeholder="Nome do assinante do cliente">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cargo</label>
+            <input type="text" id="cliente_cargo" class="form-control" placeholder="Ex: Gerente de Projetos">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-8 mt-24" style="justify-content:flex-end">
+      <a href="/pages/propostas.html" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" id="btn-salvar">Salvar Proposta</button>
+    </div>
+  </form>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+let servicosNaForm = [];
+let servicosCadastrados = [];
+let propostaId = null;
+let isLocked = false;
+let novoClienteAtivo = false;
+
+(async () => {
+  const res = await fetch('/components/nav.html');
+  document.getElementById('nav-container').innerHTML = await res.text();
+  setActiveNav('propostas');
+
+  const params = getParams();
+  propostaId = params.id ? parseInt(params.id) : null;
+
+  const DEFAULT_OBS = `• Esta proposta tem validade de 15 dias a partir da data de emissão.
+• O pagamento será realizado conforme acordado entre as partes após a aprovação.
+• Eventuais serviços extras não listados nesta proposta serão orçados separadamente.`;
+
+  // Preencher observações padrão se for nova proposta
+  if (!propostaId) {
+    document.getElementById('observacoes').value = DEFAULT_OBS;
+  }
+
+  // Load clientes and servicos in parallel
+  const [clientes, servicos, config] = await Promise.all([
+    API.listarClientes(),
+    API.listarServicos(),
+    API.buscarConfig(),
+  ]);
+
+  servicosCadastrados = servicos;
+
+  // Preencher empresa padrão (representante) se vazio
+  if (!propostaId || !document.getElementById('empresa_representante').value) {
+    document.getElementById('empresa_representante').value = config.nome_empresa || '';
+  }
+
+  const selCliente = document.getElementById('cliente_id');
+  clientes.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    // Guardar nome para preenchimento automático de assinatura
+    opt.dataset.nome = c.nome;
+    selCliente.appendChild(opt);
+  });
+
+  // Listener para preencher representante do cliente automaticamente
+  selCliente.addEventListener('change', () => {
+    const selectedOpt = selCliente.options[selCliente.selectedIndex];
+    const repInput = document.getElementById('cliente_representante');
+    if (selectedOpt.value && (!repInput.value || repInput.value === '—')) {
+      repInput.value = selectedOpt.dataset.nome;
+    }
+  });
+
+  const selServico = document.getElementById('servico-select');
+  servicos.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.nome} (${formatBRL(s.valor_padrao)})`;
+    opt.dataset.nome = s.nome;
+    opt.dataset.descricao = s.descricao || '';
+    opt.dataset.valor = s.valor_padrao;
+    selServico.appendChild(opt);
+  });
+
+  if (propostaId) {
+    const p = await API.buscarProposta(propostaId);
+    document.getElementById('page-title').textContent = 'Editar Proposta';
+    document.getElementById('page-subtitle').textContent = `Proposta #${p.id}`;
+    document.getElementById('titulo').value = p.titulo;
+    document.getElementById('descricao').value = p.descricao || '';
+    document.getElementById('observacoes').value = p.observacoes || '';
+    document.getElementById('empresa_representante').value = p.empresa_representante || '';
+    document.getElementById('empresa_cargo').value = p.empresa_cargo || '';
+    document.getElementById('cliente_representante').value = p.cliente_representante || '';
+    document.getElementById('cliente_cargo').value = p.cliente_cargo || '';
+    document.getElementById('status').value = p.status;
+    if (p.cliente_id) selCliente.value = p.cliente_id;
+
+    servicosNaForm = p.servicos.map(s => ({ ...s }));
+    renderServicos();
+
+    if (p.status !== 'rascunho') {
+      isLocked = true;
+      document.getElementById('locked-banner').style.display = 'flex';
+      document.querySelectorAll('.form-control, button[type=submit], #btn-salvar, #btn-salvar-topo').forEach(el => el.disabled = true);
+      document.getElementById('btn-salvar').style.display = 'none';
+      document.getElementById('btn-salvar-topo').style.display = 'none';
+    }
+  }
+})();
+
+function toggleNovoCliente() {
+  novoClienteAtivo = !novoClienteAtivo;
+  document.getElementById('novo-cliente-section').style.display = novoClienteAtivo ? '' : 'none';
+  document.getElementById('toggle-label').textContent = novoClienteAtivo ? '✕ Cancelar novo cliente' : '＋ Cadastrar novo cliente';
+  document.getElementById('cliente_id').disabled = novoClienteAtivo;
+}
+
+function renderServicos() {
+  const list = document.getElementById('servicos-list');
+  const empty = document.getElementById('servicos-empty');
+  empty.style.display = servicosNaForm.length ? 'none' : '';
+
+  // remove existing items
+  list.querySelectorAll('.servico-item').forEach(el => el.remove());
+
+  servicosNaForm.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'servico-item';
+    div.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Serviço</label>
+        <input type="text" class="form-control" value="${s.nome || ''}" onchange="updateServico(${i},'nome',this.value)" ${isLocked?'disabled':''}>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-control" value="${s.descricao || ''}" onchange="updateServico(${i},'descricao',this.value)" ${isLocked?'disabled':''}>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor (R$)</label>
+        <input type="number" min="0" step="0.01" class="form-control" value="${s.valor || 0}" onchange="updateServico(${i},'valor',parseFloat(this.value)||0)" ${isLocked?'disabled':''}>
+      </div>
+      <button type="button" class="btn-icon" onclick="removerServico(${i})" title="Remover" ${isLocked?'disabled':''}>✕</button>
+    `;
+    list.appendChild(div);
+  });
+  calcTotal();
+}
+
+function updateServico(i, field, value) {
+  servicosNaForm[i][field] = value;
+  calcTotal();
+}
+
+function removerServico(i) {
+  servicosNaForm.splice(i, 1);
+  renderServicos();
+}
+
+function adicionarServicoManual() {
+  servicosNaForm.push({ servico_id: null, nome: '', descricao: '', valor: 0 });
+  renderServicos();
+}
+
+function adicionarServicoLista() {
+  const sel = document.getElementById('servico-select');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt.value) { toast('Selecione um serviço da lista', 'error'); return; }
+  servicosNaForm.push({
+    servico_id: parseInt(opt.value),
+    nome: opt.dataset.nome,
+    descricao: opt.dataset.descricao,
+    valor: parseFloat(opt.dataset.valor) || 0,
+  });
+  sel.value = '';
+  renderServicos();
+}
+
+function calcTotal() {
+  const total = servicosNaForm.reduce((a, s) => a + (parseFloat(s.valor) || 0), 0);
+  document.getElementById('total-display').textContent = formatBRL(total);
+}
+
+document.getElementById('form-proposta').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (isLocked) return;
+
+  const btn = document.getElementById('btn-salvar');
+  const btnTopo = document.getElementById('btn-salvar-topo');
+  btn.disabled = true;
+  btnTopo.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  try {
+    // Create new client if needed
+    let cliente_id = document.getElementById('cliente_id').value || null;
+    if (novoClienteAtivo) {
+      const nomeCliente = document.getElementById('novo-cliente-nome').value.trim();
+      if (!nomeCliente) { toast('Informe o nome do novo cliente', 'error'); return; }
+      const novoCliente = await API.criarCliente({ nome: nomeCliente });
+      cliente_id = novoCliente.id;
+    }
+
+    const payload = {
+      titulo: document.getElementById('titulo').value.trim(),
+      descricao: document.getElementById('descricao').value.trim(),
+      observacoes: document.getElementById('observacoes').value.trim(),
+      empresa_representante: document.getElementById('empresa_representante').value.trim(),
+      empresa_cargo: document.getElementById('empresa_cargo').value.trim(),
+      cliente_representante: document.getElementById('cliente_representante').value.trim(),
+      cliente_cargo: document.getElementById('cliente_cargo').value.trim(),
+      status: document.getElementById('status').value,
+      cliente_id: cliente_id ? parseInt(cliente_id) : null,
+      servicos: servicosNaForm.map(s => ({
+        servico_id: s.servico_id || null,
+        nome: s.nome,
+        descricao: s.descricao || '',
+        valor: parseFloat(s.valor) || 0,
+      })),
+    };
+
+    if (propostaId) {
+      await API.editarProposta(propostaId, payload);
+      toast('Proposta atualizada!', 'success');
+    } else {
+      const nova = await API.criarProposta(payload);
+      toast('Proposta criada!', 'success');
+      propostaId = nova.id;
+    }
+    setTimeout(() => window.location.href = '/pages/propostas.html', 700);
+  } catch(err) {
+    toast(err.message, 'error');
+    btn.disabled = false;
+    btnTopo.disabled = false;
+    btn.textContent = 'Salvar Proposta';
+  }
+});
+</script>
+</body>
+</html>
