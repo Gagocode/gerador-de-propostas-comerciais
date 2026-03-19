@@ -5,10 +5,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from backend.database.db import init_db
-from backend.routes.servico_routes import servico_bp
-from backend.routes.proposta_routes import proposta_bp
-from backend.routes.configuracao_routes import config_bp
-from backend.routes.cliente_routes import cliente_bp
+from backend.routes.service_routes import service_bp
+from backend.routes.proposal_routes import proposal_bp
+from backend.routes.configuration_routes import configuration_bp
+from backend.routes.client_routes import client_bp
 from backend.config import DEBUG, HOST, PORT
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,10 +23,10 @@ def create_app():
     )
     CORS(app)
 
-    app.register_blueprint(servico_bp, url_prefix='/api')
-    app.register_blueprint(proposta_bp, url_prefix='/api')
-    app.register_blueprint(config_bp, url_prefix='/api')
-    app.register_blueprint(cliente_bp, url_prefix='/api')
+    app.register_blueprint(service_bp, url_prefix='/api')
+    app.register_blueprint(proposal_bp, url_prefix='/api')
+    app.register_blueprint(configuration_bp, url_prefix='/api')
+    app.register_blueprint(client_bp, url_prefix='/api')
 
     @app.route('/')
     def index():
