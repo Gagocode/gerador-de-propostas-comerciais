@@ -6,18 +6,23 @@ class ServiceRepository:
 
     def get_all(self):
         with get_connection() as conn:
-            rows = conn.execute("SELECT * FROM services ORDER BY name").fetchall()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM services ORDER BY name")
+            rows = cursor.fetchall()
             return [Service.from_row(r) for r in rows]
 
     def get_by_id(self, service_id):
         with get_connection() as conn:
-            row = conn.execute("SELECT * FROM services WHERE id = ?", (service_id,)).fetchone()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM services WHERE id = %s", (service_id,))
+            row = cursor.fetchone()
             return Service.from_row(row)
 
     def create(self, name, description, default_value):
         with get_connection() as conn:
-            cursor = conn.execute(
-                "INSERT INTO services (name, description, default_value) VALUES (?, ?, ?)",
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "INSERT INTO services (name, description, default_value) VALUES (%s, %s, %s)",
                 (name, description, default_value)
             )
             conn.commit()
@@ -26,8 +31,9 @@ class ServiceRepository:
 
     def update(self, service_id, name, description, default_value):
         with get_connection() as conn:
-            conn.execute(
-                "UPDATE services SET name=?, description=?, default_value=? WHERE id=?",
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "UPDATE services SET name=%s, description=%s, default_value=%s WHERE id=%s",
                 (name, description, default_value, service_id)
             )
             conn.commit()
@@ -35,5 +41,6 @@ class ServiceRepository:
 
     def delete(self, service_id):
         with get_connection() as conn:
-            conn.execute("DELETE FROM services WHERE id=?", (service_id,))
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("DELETE FROM services WHERE id=%s", (service_id,))
             conn.commit()

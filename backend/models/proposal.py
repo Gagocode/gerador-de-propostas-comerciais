@@ -41,7 +41,7 @@ class ProposalItem:
             service_id=row['service_id'],
             name=row['name'],
             description=row['description'],
-            value=row['value'],
+            value=float(row['value']) if row['value'] is not None else 0.0,
         )
 
 
@@ -87,8 +87,8 @@ class Proposal:
             'valor_total': self.total_value,
             'status': pt_status,
             'snapshot_json': self.snapshot_json,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at,
+            'created_at': self.created_at.isoformat() if hasattr(self.created_at, 'isoformat') else self.created_at,
+            'updated_at': self.updated_at.isoformat() if hasattr(self.updated_at, 'isoformat') else self.updated_at,
             'servicos': [s.to_dict() for s in self.services],
         }
 
@@ -113,7 +113,7 @@ class Proposal:
             company_role=get_val(row, 'company_role'),
             client_representative=get_val(row, 'client_representative'),
             client_role=get_val(row, 'client_role'),
-            total_value=row['total_value'],
+            total_value=float(row['total_value']) if row['total_value'] is not None else 0.0,
             status=row['status'],
             snapshot_json=get_val(row, 'snapshot_json'),
             created_at=row['created_at'],

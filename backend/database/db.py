@@ -1,88 +1,116 @@
-import sqlite3
+import mysql.connector
+from mysql.connector import Error
 import os
 from contextlib import contextmanager
-from backend.config import DATABASE_PATH
+from backend.config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT
 
 
 @contextmanager
 def get_connection():
-    """Context manager for database connections. Handles auto-close."""
-    os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
+    """Context manager for MySQL database connections. Handles auto-close."""
+    conn = mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME,
+        port=DB_PORT
+    )
     try:
         yield conn
+    except Error as e:
+        print(f"Error while connecting to MySQL: {e}")
+        raise
     finally:
-        conn.close()
+        if conn.is_connected():
+            conn.close()
 
 
 def init_db():
-    """Initializes the database with English table and column names."""
+    """Initializes the MySQL database with tables and seed data."""
+    # First connection to create the database if it doesn't exist
+    conn = mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        port=DB_PORT
+    )
+    cursor = conn.cursor()
+    cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}")
+    cursor.close()
+    conn.close()
+
+    # Second connection to initialize tables
     with get_connection() as conn:
         cursor = conn.cursor()
 
-        cursor.executescript("""
+        # Multi-statement execution for schema
+        schema = """
             CREATE TABLE IF NOT EXISTS clients (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT,
-                phone TEXT
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255),
+                phone VARCHAR(50)
             );
 
             CREATE TABLE IF NOT EXISTS services (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
                 description TEXT,
-                default_value REAL NOT NULL DEFAULT 0.0
+                default_value DECIMAL(10, 2) NOT NULL DEFAULT 0.0
             );
 
             CREATE TABLE IF NOT EXISTS proposals (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                client_id INTEGER,
-                title TEXT NOT NULL,
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                client_id INT,
+                title VARCHAR(255) NOT NULL,
                 description TEXT,
                 notes TEXT,
-                company_representative TEXT,
-                company_role TEXT,
-                client_representative TEXT,
-                client_role TEXT,
-                total_value REAL NOT NULL DEFAULT 0.0,
-                status TEXT NOT NULL DEFAULT 'draft'
-                    CHECK(status IN ('draft','sent','approved','rejected')),
-                snapshot_json TEXT,
-                created_at DATETIME DEFAULT (datetime('now','localtime')),
-                updated_at DATETIME DEFAULT (datetime('now','localtime')),
-                FOREIGN KEY (client_id) REFERENCES clients(id)
+                company_representative VARCHAR(255),
+                company_role VARCHAR(255),
+                client_representative VARCHAR(255),
+                client_role VARCHAR(255),
+                total_value DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
+                status VARCHAR(20) NOT NULL DEFAULT 'draft',
+                snapshot_json LONGTEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (client_id) REFERENCES clients(id),
+                CONSTRAINT chk_status CHECK (status IN ('draft','sent','approved','rejected'))
             );
 
             CREATE TABLE IF NOT EXISTS proposal_services (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                proposal_id INTEGER NOT NULL,
-                service_id INTEGER,
-                name TEXT NOT NULL,
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                proposal_id INT NOT NULL,
+                service_id INT,
+                name VARCHAR(255) NOT NULL,
                 description TEXT,
-                value REAL NOT NULL DEFAULT 0.0,
+                value DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
                 FOREIGN KEY (proposal_id) REFERENCES proposals(id) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS configurations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                company_name TEXT NOT NULL DEFAULT 'My Company',
-                phone TEXT,
-                email TEXT,
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                company_name VARCHAR(255) NOT NULL DEFAULT 'My Company',
+                phone VARCHAR(50),
+                email VARCHAR(255),
                 address TEXT,
                 footer TEXT
             );
-        """)
+        """
+        
+        # Execute schema queries individually
+        for query in schema.split(';'):
+            query = query.strip()
+            if query:
+                cursor.execute(query)
 
         # Seed default config if empty
         cursor.execute("SELECT COUNT(*) FROM configurations")
         if cursor.fetchone()[0] == 0:
             cursor.execute("""
                 INSERT INTO configurations (company_name, phone, email, address, footer)
-                VALUES ('My Company', '(00) 00000-0000', 'contact@company.com',
-                        'Example Street, 123 - City, ST', 'Thank you for your business!')
-            """)
+                VALUES (%s, %s, %s, %s, %s)
+            """, ('My Company', '(00) 00000-0000', 'contact@company.com',
+                  'Example Street, 123 - City, ST', 'Thank you for your business!'))
 
         conn.commit()

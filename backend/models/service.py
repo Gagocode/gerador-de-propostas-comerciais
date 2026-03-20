@@ -22,5 +22,5 @@ class Service:
             id=row['id'],
             name=row['name'],
             description=row['description'],
-            default_value=row['default_value'],
+            default_value=float(row['default_value']) if row['default_value'] is not None else 0.0,
         )

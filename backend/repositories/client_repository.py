@@ -6,18 +6,23 @@ class ClientRepository:
 
     def get_all(self):
         with get_connection() as conn:
-            rows = conn.execute("SELECT * FROM clients ORDER BY name").fetchall()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM clients ORDER BY name")
+            rows = cursor.fetchall()
             return [Client.from_row(r) for r in rows]
 
     def get_by_id(self, client_id):
         with get_connection() as conn:
-            row = conn.execute("SELECT * FROM clients WHERE id = ?", (client_id,)).fetchone()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM clients WHERE id = %s", (client_id,))
+            row = cursor.fetchone()
             return Client.from_row(row)
 
     def create(self, name, email, phone):
         with get_connection() as conn:
-            cursor = conn.execute(
-                "INSERT INTO clients (name, email, phone) VALUES (?, ?, ?)",
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "INSERT INTO clients (name, email, phone) VALUES (%s, %s, %s)",
                 (name, email, phone)
             )
             conn.commit()
@@ -26,8 +31,9 @@ class ClientRepository:
 
     def update(self, client_id, name, email, phone):
         with get_connection() as conn:
-            conn.execute(
-                "UPDATE clients SET name=?, email=?, phone=? WHERE id=?",
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "UPDATE clients SET name=%s, email=%s, phone=%s WHERE id=%s",
                 (name, email, phone, client_id)
             )
             conn.commit()
