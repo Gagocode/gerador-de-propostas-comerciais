@@ -13,10 +13,14 @@ class SQLiteMySQLAdapter:
         self.conn.row_factory = sqlite3.Row
 
     def cursor(self, dictionary=False, buffered=False):
+        # We ignore dictionary=True because row_factory = sqlite3.Row already handles it
         return SQLiteMySQLCursorAdapter(self.conn.cursor())
 
     def commit(self):
         self.conn.commit()
+
+    def rollback(self):
+        self.conn.rollback()
 
     def close(self):
         self.conn.close()
@@ -33,7 +37,14 @@ class SQLiteMySQLCursorAdapter:
     def __init__(self, sqlite_cursor):
         self.cursor = sqlite_cursor
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def execute(self, query, params=None, multi=False):
+        # Replace MySQL %s placeholder with SQLite ?
         translated_query = query.replace('%s', '?')
         
         if params:

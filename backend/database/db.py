@@ -7,7 +7,7 @@ from backend.config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT
 
 @contextmanager
 def get_connection():
-    """Context manager for MySQL database connections. Handles auto-close."""
+    """Context manager for MySQL database connections. Handles rollback and auto-close."""
     conn = mysql.connector.connect(
         host=DB_HOST,
         user=DB_USER,
@@ -17,8 +17,10 @@ def get_connection():
     )
     try:
         yield conn
-    except Error as e:
-        print(f"Error while connecting to MySQL: {e}")
+    except Exception as e:
+        if conn.is_connected():
+            conn.rollback()
+        print(f"Database error: {e}")
         raise
     finally:
         if conn.is_connected():
